@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Theme Switcher</title>
+    <style>
+        /* Base Styles */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #f5f5f5;
+            --text-color: #333;
+            --card-bg: #fff;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --transition-speed: 0.5s;
+        }
+
+        /* Dark Theme */
+        body.dark-theme {
+            --primary-color: #2980b9;
+            --secondary-color: #27ae60;
+            --background-color: #121212;
+            --text-color: #f0f0f0;
+            --card-bg: #1e1e1e;
+            --shadow-color: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            transition: color var(--transition-speed);
+        }
+
+        .theme-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            border-radius: 15px;
+            background-color: var(--secondary-color);
+            cursor: pointer;
+            margin: 20px auto;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            transition: background-color var(--transition-speed);
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background-color: #fff;
+            top: 2px;
+            left: 2px;
+            transition: transform var(--transition-speed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .dark-theme .toggle-thumb {
+            transform: translateX(30px);
+            background-color: #222;
+        }
+
+        .toggle-icon {
+            font-size: 16px;
+            transition: opacity 0.3s ease;
+        }
+
+        .sun-icon {
+            color: #f39c12;
+            opacity: 1;
+        }
+
+        .moon-icon {
+            color: #f0f0f0;
+            opacity: 0;
+            position: absolute;
+        }
+
+        .dark-theme .sun-icon {
+            opacity: 0;
+        }
+
+        .dark-theme .moon-icon {
+            opacity: 1;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            transition: background-color var(--transition-speed), 
+                        box-shadow var(--transition-speed), 
+                        transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px var(--shadow-color);
+        }
+
+        .animation-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.7s;
+            z-index: -1;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 5px 15px var(--shadow-color);
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+        
+        .btn[data-animation="pulse"] { background-color: #e74c3c; }
+        .btn[data-animation="spin"] { background-color: #3498db; }
+        .btn[data-animation="bounce"] { background-color: #2ecc71; }
+        .btn[data-animation="shake"] { background-color: #f39c12; }
+        .btn[data-animation="fade"] { background-color: #9b59b6; }
+        .btn[data-animation="disco"] { background-image: linear-gradient(45deg, #e74c3c, #3498db, #2ecc71, #f39c12); }
+        .btn[data-animation="none"] { background-color: #7f8c8d; }
+
+        .animation-box {
+            width: 50%;
+            height: 100px;
+            background-color: var(--primary-color);
+            margin: 20px auto;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            transition: background-color var(--transition-speed), border-radius 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .animation-box::before {
+            content: "";
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            top: 10px;
+            left: 10px;
+        }
+        
+        .animation-box::after {
+            content: "";
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            bottom: 10px;
+            right: 10px;
+        }
+        
+        .dark-theme .animation-box:hover {
+            border-radius: 8px;
+            background-image: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        }
+
+        /* Animation Classes */
+        @keyframes pulse {
+            0% { transform: scale(1); filter: hue-rotate(0deg); }
+            50% { transform: scale(1.05); filter: hue-rotate(45deg); }
+            100% { transform: scale(1); filter: hue-rotate(0deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); border-radius: 50px; }
+            50% { transform: rotate(180deg); border-radius: 8px; }
+            100% { transform: rotate(360deg); border-radius: 50px; }
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0); background-color: var(--primary-color); }
+            50% { transform: translateY(-20px); background-color: var(--secondary-color); }
+            100% { transform: translateY(0); background-color: var(--primary-color); }
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0) skewX(0deg); }
+            25% { transform: translateX(-10px) skewX(5deg); }
+            75% { transform: translateX(10px) skewX(-5deg); }
+            100% { transform: translateX(0) skewX(0deg); }
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0.7; transform: scale(0.95) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1.05) rotate(5deg); }
+            100% { opacity: 0.7; transform: scale(0.95) rotate(0deg); }
+        }
+        
+        @keyframes disco {
+            0% { filter: hue-rotate(0deg) brightness(1); }
+            25% { filter: hue-rotate(90deg) brightness(1.2); }
+            50% { filter: hue-rotate(180deg) brightness(1); }
+            75% { filter: hue-rotate(270deg) brightness(1.2); }
+            100% { filter: hue-rotate(360deg) brightness(1); }
+        }
+
+        .animate-pulse {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        .animate-spin {
+            animation: spin 2s infinite linear;
+        }
+
+        .animate-bounce {
+            animation: bounce 1s infinite ease-in-out;
+        }
+
+        .animate-shake {
+            animation: shake 0.5s infinite;
+        }
+
+        .animate-fade {
+            animation: fadeInOut 2s infinite ease-in-out;
+        }
+        
+        .animate-disco {
+            animation: disco 3s infinite linear;
+        }
+
+        .preferences {
+            margin-top: 2rem;
+        }
+
+        select {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .dark-theme select {
+            border-color: #444;
+        }
+
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            transition: opacity var(--transition-speed);
+        }
+
+        footer:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Party Theme Switcher</h1>
+        
+        <div class="theme-toggle" id="themeToggle">
+            <div class="toggle-thumb">
+                <span class="toggle-icon sun-icon">☀️</span>
+                <span class="toggle-icon moon-icon">🌙</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Let's Have Fun</h2>
+            <p>Click the buttons below to choose your fun styles.</p>
+            
+            <div class="animation-buttons">
+                <button class="btn" data-animation="pulse">Pulse</button>
+                <button class="btn" data-animation="spin">Spin</button>
+                <button class="btn" data-animation="bounce">Bounce</button>
+                <button class="btn" data-animation="shake">Shake</button>
+                <button class="btn" data-animation="fade">Fade</button>
+                <button class="btn" data-animation="disco">Disco!</button>
+                <button class="btn" data-animation="none">Reset</button>
+            </div>
+            
+            <div class="animation-box" id="animationBox"></div>
+        </div>
+
+        <div class="card preferences">
+            <h2>User Fun Style</h2>
+            <p>Your fun styles are automatically saved to localStorage:</p>
+            
+            <div>
+                <label for="defaultAnimation">Default Animation:</label>
+                <select id="defaultAnimation">
+                    <option value="none">None</option>
+                    <option value="pulse">Pulse</option>
+                    <option value="spin">Spin</option>
+                    <option value="bounce">Bounce</option>
+                    <option value="shake">Shake</option>
+                    <option value="fade">Fade</option>
+                    <option value="disco">Disco!</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Created with CSS animations and localStorage
+    </footer>
+
+    <script>
+        // Local Storage Utility Functions
+        const Storage = {
+            set: function(key, value) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                    return true;
+                } catch (error) {
+                    console.error('Error saving to localStorage:', error);
+                    return false;
+                }
+            },
+            
+            get: function(key, defaultValue = null) {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item) : defaultValue;
+                } catch (error) {
+                    console.error('Error retrieving from localStorage:', error);
+                    return defaultValue;
+                }
+            },
+            
+            remove: function(key) {
+                try {
+                    localStorage.removeItem(key);
+                    return true;
+                } catch (error) {
+                    console.error('Error removing from localStorage:', error);
+                    return false;
+                }
+            }
+        };
+
+        // User Preferences
+        const UserPreferences = {
+            theme: 'light',
+            defaultAnimation: 'none',
+            
+            save: function() {
+                Storage.set('userPreferences', {
+                    theme: this.theme,
+                    defaultAnimation: this.defaultAnimation
+                });
+            },
+            
+            load: function() {
+                const preferences = Storage.get('userPreferences', {
+                    theme: 'light',
+                    defaultAnimation: 'none'
+                });
+                
+                this.theme = preferences.theme;
+                this.defaultAnimation = preferences.defaultAnimation;
+                
+                return preferences;
+            }
+        };
+
+        // Theme Functions
+        function toggleTheme() {
+            if (document.body.classList.contains('dark-theme')) {
+                document.body.classList.remove('dark-theme');
+                UserPreferences.theme = 'light';
+            } else {
+                document.body.classList.add('dark-theme');
+                UserPreferences.theme = 'dark';
+            }
+            UserPreferences.save();
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
+        }
+
+        // Animation Functions
+        function applyAnimation(animationType) {
+            const animationBox = document.getElementById('animationBox');
+            
+            // Remove all animation classes first
+            animationBox.classList.remove(
+                'animate-pulse', 
+                'animate-spin', 
+                'animate-bounce', 
+                'animate-shake', 
+                'animate-fade',
+                'animate-disco'
+            );
+            
+            // Add the requested animation class
+            if (animationType !== 'none') {
+                animationBox.classList.add(`animate-${animationType}`);
+            }
+            
+            // Update the preferences
+            UserPreferences.defaultAnimation = animationType;
+            UserPreferences.save();
+            
+            // Update the select dropdown
+            document.getElementById('defaultAnimation').value = animationType;
+        }
+
+        // Easter egg - Konami code
+        let konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        let konamiIndex = 0;
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === konamiCode[konamiIndex]) {
+                konamiIndex++;
+                if (konamiIndex === konamiCode.length) {
+                    // Activate special mode
+                    document.body.style.transition = "all 0.5s";
+                    document.querySelectorAll('.btn').forEach(btn => {
+                        btn.style.animation = "disco 3s infinite";
+                    });
+                    document.getElementById('animationBox').style.animation = "disco 1s infinite";
+                    document.getElementById('animationBox').style.transform = "scale(1.5)";
+                    
+                    // Reset
+                    konamiIndex = 0;
+                    
+                    // Add confetti effect
+                    for (let i = 0; i < 50; i++) {
+                        createConfetti();
+                    }
+                }
+            } else {
+                konamiIndex = 0;
+            }
+        });
+        
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.style.position = 'fixed';
+            confetti.style.width = Math.random() * 10 + 5 + 'px';
+            confetti.style.height = Math.random() * 10 + 5 + 'px';
+            confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            confetti.style.borderRadius = '50%';
+            confetti.style.top = '-5vh';
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.zIndex = '1000';
+            confetti.style.pointerEvents = 'none';
+            
+            document.body.appendChild(confetti);
+            
+            const animationDuration = Math.random() * 3 + 2;
+            confetti.style.animation = `fall ${animationDuration}s linear`;
+            
+            setTimeout(() => {
+                document.body.removeChild(confetti);
+            }, animationDuration * 1000);
+        }
+        
+        document.head.insertAdjacentHTML('beforeend', `
+            <style>
+                @keyframes fall {
+                    0% { 
+                        transform: translateY(-5vh) rotate(0deg); 
+                        opacity: 1;
+                    }
+                    100% { 
+                        transform: translateY(105vh) rotate(720deg); 
+                        opacity: 0;
+                    }
+                }
+            </style>
+        `);
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load user preferences
+            const preferences = UserPreferences.load();
+            
+            // Apply theme
+            applyTheme(preferences.theme);
+            
+            // Apply default animation
+            applyAnimation(preferences.defaultAnimation);
+            
+            // Set default animation dropdown
+            document.getElementById('defaultAnimation').value = preferences.defaultAnimation;
+            
+            // Theme toggle listener
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Animation buttons listeners
+            document.querySelectorAll('.animation-buttons .btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const animation = this.getAttribute('data-animation');
+                    applyAnimation(animation);
+                });
+            });
+            
+            // Default animation dropdown listener
+            document.getElementById('defaultAnimation').addEventListener('change', function() {
+                applyAnimation(this.value);
+            });
+        });
+    </script>
+</body>
+</html>
